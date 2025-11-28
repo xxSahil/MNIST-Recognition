@@ -59,25 +59,105 @@ class FeedforwardNN(nn.Module):
     """Feedforward Neural Network for MNIST classification."""
     def __init__(self):
         super(FeedforwardNN, self).__init__()
-        # Your code here - Design your feedforward neural network architecture
-        # Consider: input size, hidden layers, output size, activation functions
-        pass
+        #MNIST images are 28x28 pixels
+        input_size = 28 * 28
+
+        # Hidden layers
+        hidden_layer1 = 256
+        hidden_layer2 = 128
+
+        # Output size is number of classes
+        output_size = 10
+
+        # Flatten to a 1D vector for fully connected layers
+        self.flatten = nn.Flatten()
+
+        # Fully connected layers
+        self.fc1 = nn.Linear(input_size, hidden_layer1)
+        self.fc2 = nn.Linear(hidden_layer1, hidden_layer2)
+        self.fc3 = nn.Linear(hidden_layer2, output_size)
+
+        # Activation Function
+        self.relu = nn.ReLU()
+        
+        # Helps reduce overfitting
+        self.dropout = nn.Dropout(p = 0.2)
     
     def forward(self, x):
-        # Your code here - Implement forward pass
-        pass
+        # Flatten to a 1D vector
+        x = self.flatten(x)
+
+        # First hidden layer + ReLU + Dropout
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+
+        # Second hidden layer + ReLU + Dropout
+        x = self.fc2(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+
+        # Output layer
+        x = self.fc3(x)
+        
+        return x
+
 
 class CNN(nn.Module):
     """Convolutional Neural Network for MNIST classification."""
     def __init__(self):
         super(CNN, self).__init__()
-        # Your code here - Design your CNN architecture
-        # Consider: convolutional layers, pooling, fully connected layers
-        pass
+        # Convolution layers; Layer 1 (1 input, 32 output), Layer 2 (32 input, 64 output)
+        self.conv1 = nn.Conv2d(
+            in_channels = 1,
+            out_channels = 32, 
+            kernel_size = 3
+        )
+        self.conv2 = nn.Conv2d(
+            in_channels = 32,
+            out_channels = 64,
+            kernel_size = 3
+        )
+
+        # Pooling layer reduces size by half
+        self.pool = nn.MaxPool2d(
+            kernel_size = 2,
+            stride = 2
+        )
+        
+        # Dropout to help reduce overfitting
+        self.dropout = nn.Dropout(p = 0.2)
+
+        # Fully connected layers
+        self.fc1 = nn.Linear(64 * 5 * 5, 128)
+        self.fc2 = nn.Linear(128, 10)
+        
+        # Activation
+        self.relu = nn.ReLU()
+
     
     def forward(self, x):
-        # Your code here - Implement forward pass
-        pass
+        # Convolution 1 + ReLU + Pooling
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.pool(x)
+
+        # Convolution 2 + ReLU + Pooling
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.pool(x)
+
+        x = x.view(x.size(0), -1)
+
+        # Fully connected layer + ReLU + Dropout
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+
+        # Output layer
+        x = self.fc2(x)
+
+        return x
 
 # 3. Training Function
 def train_model(model, train_loader, val_loader, epochs=10, lr=0.001, save_path="model.pth", log_file="training_log.txt"):
