@@ -1,0 +1,18 @@
+MNIST Classification Results Summary
+========================================
+
+Feedforward Neural Network:
+- Test Accuracy: 97.99%
+- Final Validation Accuracy: 97.94%
+- Final Training Loss: 0.0301
+- Final Validation Loss: 0.0873
+
+Convolutional Neural Network:
+- Test Accuracy: 99.14%
+- Final Validation Accuracy: 98.92%
+- Final Training Loss: 0.0068
+- Final Validation Loss: 0.0606
+
+Performance Comparison:
+- CNN vs NN Accuracy Improvement: 1.15%
+- Better Model: CNN

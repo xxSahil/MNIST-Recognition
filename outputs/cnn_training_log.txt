@@ -1,0 +1,16 @@
+Training CNN...
+Epoch 1/15: Train Loss: 0.1902, Val Loss: 0.0615, Val Acc: 98.16%
+Epoch 2/15: Train Loss: 0.0595, Val Loss: 0.0552, Val Acc: 98.37%
+Epoch 3/15: Train Loss: 0.0450, Val Loss: 0.0415, Val Acc: 98.72%
+Epoch 4/15: Train Loss: 0.0336, Val Loss: 0.0456, Val Acc: 98.66%
+Epoch 5/15: Train Loss: 0.0263, Val Loss: 0.0405, Val Acc: 98.83%
+Epoch 6/15: Train Loss: 0.0230, Val Loss: 0.0386, Val Acc: 99.00%
+Epoch 7/15: Train Loss: 0.0158, Val Loss: 0.0419, Val Acc: 98.91%
+Epoch 8/15: Train Loss: 0.0157, Val Loss: 0.0435, Val Acc: 99.00%
+Epoch 9/15: Train Loss: 0.0131, Val Loss: 0.0481, Val Acc: 98.91%
+Epoch 10/15: Train Loss: 0.0120, Val Loss: 0.0607, Val Acc: 98.92%
+Epoch 11/15: Train Loss: 0.0110, Val Loss: 0.0455, Val Acc: 99.00%
+Epoch 12/15: Train Loss: 0.0093, Val Loss: 0.0490, Val Acc: 98.99%
+Epoch 13/15: Train Loss: 0.0085, Val Loss: 0.0574, Val Acc: 98.91%
+Epoch 14/15: Train Loss: 0.0075, Val Loss: 0.0577, Val Acc: 99.00%
+Epoch 15/15: Train Loss: 0.0068, Val Loss: 0.0606, Val Acc: 98.92%

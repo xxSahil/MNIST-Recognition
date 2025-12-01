@@ -164,38 +164,155 @@ def train_model(model, train_loader, val_loader, epochs=10, lr=0.001, save_path=
     """Train a model and log performance metrics."""
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    
-    # Your code here - Implement training loop with validation and logging
-    # Requirements:
-    # - Train for specified epochs
-    # - Track and log training/validation loss and accuracy
-    # - Save training progress to log_file in the specified format
-    # - Save trained model to save_path
-    # - Return training metrics for plotting
-    
-    pass
+
+    model.to(device)
+
+    # Lists to store metrics
+    train_losses = []
+    val_losses = []
+    val_accuracies = []
+
+    with open(log_file, "w") as f:
+        start_msg = f"Training {model.__class__.__name__}...\n"
+        print(start_msg)
+        f.write(start_msg)
+
+
+        for epoch in range (1, epochs + 1):
+            model.train()
+            total_train_loss = 0
+
+            # Go through batch of training images
+            for images, labels in train_loader:
+                images = images.to(device)
+                labels = labels.to(device)
+                # Reset gradients
+                optimizer.zero_grad()
+                # Make Predictions
+                outputs = model(images)
+                # Compute loss for batch
+                loss = criterion(outputs, labels)
+                # Gradients
+                loss.backward()
+                # Update model weights
+                optimizer.step()
+                total_train_loss += loss.item()
+            
+            avg_train_loss = total_train_loss / len(train_loader)
+
+            model.eval()
+            total_val_loss = 0
+            correct = 0
+            total = 0
+
+            with torch.no_grad():
+                for images, labels in val_loader:
+                    images = images.to(device)
+                    labels = labels.to(device)
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
+
+                    total_val_loss += loss.item()
+
+                    _, predicted = torch.max(outputs, 1)
+                    total += labels.size(0)
+                    correct += (predicted == labels).sum().item()
+
+            avg_val_loss = total_val_loss / len(val_loader)
+
+            val_acc = 100 * correct / total
+
+            train_losses.append(avg_train_loss)
+            val_losses.append(avg_val_loss)
+            val_accuracies.append(val_acc)
+
+
+            printed_text = (
+                f"Epoch {epoch}/{epochs}: "
+                f"Train Loss: {avg_train_loss:.4f}, "
+                f"Val Loss: {avg_val_loss:.4f}, "
+                f"Val Acc: {val_acc:.2f}%\n"
+            )
+
+            print(printed_text.strip())
+            f.write(printed_text)
+    torch.save(model.state_dict(), save_path)
+    return train_losses, val_losses, val_accuracies
+
 
 # 4. Evaluation Function  
 def evaluate_model(model, test_loader, save_cm_path="confusion_matrix.jpg"):
     """Evaluate model performance and generate confusion matrix."""
-    # Your code here - Implement model evaluation
-    # Requirements:
-    # - Calculate test accuracy
-    # - Generate and save confusion matrix as JPEG
-    # - Return accuracy and confusion matrix
     
-    pass
+    model.to(device)
+    model.eval()
+
+    predictions_lst = []
+    labels_lst = []
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            # Make Predictions
+            outputs = model(images)
+            
+            # Index of highest score to predicted digit
+            _, predicted = torch.max(outputs,1)
+
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            predictions_lst.extend(predicted.cpu().numpy())
+            labels_lst.extend(labels.cpu().numpy())
+    
+    test_accuracy = 100 * correct / total
+    cm = confusion_matrix(labels_lst, predictions_lst)
+
+    # Plot confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot(cmap="Blues", colorbar=False)
+    plt.title(f"{model.__class__.__name__} Confusion Matrix")
+    plt.savefig(save_cm_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    return test_accuracy, cm
+
 
 # 5. Visualization Function
 def plot_curves(train_losses, val_losses, val_accuracies, model_name, save_path="curves.jpg"):
     """Plot and save training curves."""
-    # Your code here - Create and save training/validation curves
-    # Requirements:
-    # - Plot training and validation loss curves
-    # - Plot validation accuracy curve
-    # - Save as high-quality JPEG
+
+    epochs = range(1, len(train_losses) + 1)
+
+    plt.figure(figsize=(14, 5))
+
+    # Loss curves graph according to example
+    plt.subplot(1, 2, 1)  
+    plt.plot(epochs, train_losses, label="Training Loss", color="blue")
+    plt.plot(epochs, val_losses, label="Validation Loss", color="red")
+    plt.title(f"{model_name} - Loss Curves")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.grid(False)
+
+    # Accuracy curve graph according to example
+    plt.subplot(1, 2, 2)  
+    plt.plot(epochs, val_accuracies, label="Validation Accuracy", color="green")
+    plt.title(f"{model_name} - Accuracy Curve")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy (%)")
+    plt.legend()
+    plt.grid(False)
+
     
-    pass
+    plt.savefig(save_path, dpi=300)
+    plt.close()
+
 
 # 6. Main Execution
 def main():
@@ -206,14 +323,90 @@ def main():
     # Load data
     train_loader, val_loader, test_loader = load_mnist_data()
     visualize_samples(train_loader.dataset, save_path="outputs/mnist_samples.png")
-    
-    # Your code here - Train and evaluate both models
-    # Requirements:
-    # - Train FeedforwardNN and CNN models
-    # - Generate all required outputs (logs, confusion matrices, curves)
-    # - Save results summary comparing both models
-    
-    pass
 
+    # Train Feedforward NN
+    nn_model = FeedforwardNN()
+
+    nn_train_losses, nn_val_losses, nn_val_acc = train_model(
+        model = nn_model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        epochs=15,
+        lr=0.001,
+        save_path="outputs/nn_model.pth",
+        log_file="outputs/nn_training_log.txt"
+    )
+
+    nn_test_acc, nn_cm = evaluate_model(
+        model=nn_model,
+        test_loader=test_loader,
+        save_cm_path="outputs/nn_confusion_matrix.jpg"
+    )
+
+    plot_curves(
+        nn_train_losses,
+        nn_val_losses,
+        nn_val_acc,
+        model_name="Feedforward Neural Network",
+        save_path="outputs/nn_training_curves.jpg"
+    )
+
+    # Train Convolutional NN
+    cnn_model = CNN()
+
+    cnn_train_losses, cnn_val_losses, cnn_val_acc = train_model(
+        model=cnn_model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        epochs=15,
+        lr=0.001,
+        save_path="outputs/cnn_model.pth",
+        log_file="outputs/cnn_training_log.txt"
+    )
+
+    cnn_test_acc, cnn_cm = evaluate_model(
+        model=cnn_model,
+        test_loader=test_loader,
+        save_cm_path="outputs/cnn_confusion_matrix.jpg"
+    )
+
+    plot_curves(
+    cnn_train_losses,
+    cnn_val_losses,
+    cnn_val_acc,
+    model_name="Convolutional Neural Network",
+    save_path="outputs/cnn_training_curves.jpg"
+    )
+
+
+
+    with open("outputs/results.txt", "w") as f:
+        f.write("MNIST Classification Results Summary\n")
+        f.write("========================================\n\n")
+
+        # Feedforward NN summary
+        f.write("Feedforward Neural Network:\n")
+        f.write(f"- Test Accuracy: {nn_test_acc:.2f}%\n")
+        f.write(f"- Final Validation Accuracy: {nn_val_acc[-1]:.2f}%\n")
+        f.write(f"- Final Training Loss: {nn_train_losses[-1]:.4f}\n")
+        f.write(f"- Final Validation Loss: {nn_val_losses[-1]:.4f}\n\n")
+
+        # CNN summary
+        f.write("Convolutional Neural Network:\n")
+        f.write(f"- Test Accuracy: {cnn_test_acc:.2f}%\n")
+        f.write(f"- Final Validation Accuracy: {cnn_val_acc[-1]:.2f}%\n")
+        f.write(f"- Final Training Loss: {cnn_train_losses[-1]:.4f}\n")
+        f.write(f"- Final Validation Loss: {cnn_val_losses[-1]:.4f}\n\n")
+
+        # Comparison
+        improvement = cnn_test_acc - nn_test_acc
+        better_model = "CNN" if improvement > 0 else "Feedforward NN"
+
+        f.write("Performance Comparison:\n")
+        f.write(f"- CNN vs NN Accuracy Improvement: {improvement:.2f}%\n")
+        f.write(f"- Better Model: {better_model}\n")
+
+    # Print summary location
+    print("\nTraining complete summary saved")
 if __name__ == "__main__":
     main()
